@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>橙C诚 · BotHive — 把 AI 装进口袋</title>
+<meta name="description" content="BotHive：把 AI 装进口袋的原生安卓应用。每个 Bot 有独立人格、长期记忆，和一个真能干活的 Ubuntu 沙箱。开源免费。">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/main.css">
+<link rel="stylesheet" href="assets/liquid-glass.css">
+</head>
+<body>
+
+<!-- ============ 顶部导航 ============ -->
+<nav class="nav">
+  <div class="nav-inner wrap">
+    <a class="brand" href="#top" aria-label="回到页面顶部">
+      <img class="brand-bee" src="assets/bothive-logo.svg" alt="" width="52" height="44">
+      <span>橙C诚</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">特性</a>
+      <a href="#tech">技术</a>
+      <a href="#download">下载</a>
+    </div>
+  </div>
+</nav>
+
+<main id="top">
+
+  <!-- ============ 1. Hero ============ -->
+  <section class="hero">
+    <img class="hero-bee" src="assets/bothive-logo.svg" alt="" width="520" height="440">
+    <div class="hero-panel lg" data-lg data-lg-hover>
+      <img class="hero-bee-mark" src="assets/bothive-logo.svg" alt="BotHive 像素蜂 Logo" width="208" height="176">
+      <h1>把 AI 装进口袋</h1>
+      <p class="sub">BotHive 是一个原生安卓应用：每个 Bot 有自己的独立人格和长期记忆，还有一个真能干活的 Ubuntu 沙箱。</p>
+      <p class="meta">开源免费 · Kotlin + Jetpack Compose 原生开发</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="https://github.com/cxc1344/BotHive/releases">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m6 11 6 6 6-6"/></svg>
+          下载 APK · v0.5.8
+        </a>
+        <a class="btn btn-glass lg lg-capsule" data-lg data-lg-hover href="https://github.com/cxc1344/BotHive">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .3.2.66.8.55A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+          GitHub 仓库
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 2. BotHive 是什么 ============ -->
+  <section class="about wrap" id="about">
+    <div class="io">
+      <h2>聊天机器人只会聊天，BotHive 不止</h2>
+      <p class="lede">市面上的 AI 应用要么是套壳网页，要么是万能助手，谁都用，谁的都不是。BotHive 反过来：你养的每一个 Bot 都是独立的——有自己的名字和性格设定、自己选的模型、自己攒下来的长期记忆。</p>
+      <p>它跑在手机上，是个原生安卓应用，不是网页也不是套壳。平时是聊伴，认真起来能自己开终端干活：装包、跑命令、改文件。锁屏了也在线，后台保活。</p>
+      <p>给想把 AI 当「自己人」养的人做的。</p>
+    </div>
+    <img class="about-bee io" src="assets/bothive-logo.svg" alt="BotHive 像素蜂" width="352" height="297">
+  </section>
+
+  <!-- ============ 3. 特性 ============ -->
+  <section class="wrap" id="features">
+    <h2 class="io">不是玩具，是真能干活的</h2>
+    <p class="io">六件事，每一件都做实了：</p>
+    <div class="features-grid">
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 0 1 3 3c0 1.5-.5 2-1 2.5s-1 1-1 2.5"/><circle cx="12" cy="8" r="3"/><path d="M5.5 15A2.5 2.5 0 0 1 8 12.5h8a2.5 2.5 0 0 1 2.5 2.5c0 1-1 1.5-2.5 1.5h-8c-1.5 0-2.5-.5-2.5-1.5Z"/></svg>
+        </div>
+        <h3>多 Bot 共存</h3>
+        <p>每个 Bot 独立人格设定、独立模型、独立长期记忆。养一群，各自记各自的事。</p>
+      </div>
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="m7 9 3 3-3 3"/><path d="M12 15h5"/></svg>
+        </div>
+        <h3>真沙箱</h3>
+        <p>每个 Bot 有自己的 Ubuntu 环境：能装包、跑命令、读写文件。玩坏了，一键重置。</p>
+      </div>
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3"/><path d="M8 6h8"/><path d="M5 9h14"/><rect x="7" y="9" width="10" height="11" rx="2"/><path d="M12 13v4"/><path d="m10 15 2-2 2 2"/></svg>
+        </div>
+        <h3>双模式</h3>
+        <p>聊天 Bot 模式陪聊；Agent 模式自己干活——以截图感知屏幕、自己操作界面。</p>
+      </div>
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>
+        </div>
+        <h3>例行任务与工作流</h3>
+        <p>定时让 Bot 自己干活；多步骤流程编排成工作流，到点自动跑。</p>
+      </div>
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><rect x="8" y="8" width="8" height="8" rx="1.5"/><path d="M6 6l2 2M18 6l-2 2M6 18l2-2M18 18l-2-2"/></svg>
+        </div>
+        <h3>远程 MCP 与技能包</h3>
+        <p>接远程 MCP 服务器，装技能包。Bot 的能力边界，由你决定扩到哪。</p>
+      </div>
+      <div class="feature-card lg io" data-lg>
+        <div class="feature-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3 2.1 5.1L19 9l-4.9 1.9L12 16l-2.1-5.1L5 9l4.9-1.9L12 3Z"/><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></svg>
+        </div>
+        <h3>命令批准卡</h3>
+        <p>危险操作先弹卡确认，你点了才执行。锁屏也在线，后台保活。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 4. 沙箱 / 技术 ============ -->
+  <section class="tech wrap" id="tech">
+    <div class="term lg io" data-lg>
+      <div class="term-head" aria-hidden="true">
+        <span class="term-dot"></span><span class="term-dot"></span><span class="term-dot"></span>
+        <span class="term-title">bot@hive: ~/sandbox</span>
+      </div>
+      <div class="term-body" id="term-body" aria-live="polite">
+        <div><span class="u">bot@bothive</span>:<span class="d">~</span>$ <span class="term-cursor"></span></div>
+      </div>
+      <div class="term-cmds" role="group" aria-label="试试沙箱命令">
+        <button type="button" data-cmd="whoami">whoami</button>
+        <button type="button" data-cmd="ls">ls ~/</button>
+        <button type="button" data-cmd="apt">apt install python3</button>
+        <button type="button" data-cmd="rm">rm -rf ~</button>
+      </div>
+      <div class="approve lg" data-lg id="approve-card" role="alert">
+        <div class="approve-txt">
+          <strong>需要批准：rm -rf ~</strong>
+          <span>此操作会清空沙箱主目录，Bot 无法自己撤销。</span>
+        </div>
+        <div class="approve-actions">
+          <button class="deny" type="button" id="approve-deny">拒绝</button>
+          <button class="allow" type="button" id="approve-allow">批准执行</button>
+        </div>
+      </div>
+    </div>
+    <div class="io">
+      <h2>肚子里真有一台 Ubuntu</h2>
+      <p>左边这个终端不是画出来的装饰——BotHive 里每个 Bot 都有自己的 Ubuntu 24.04 环境，通过 PRoot 跑在你的手机上。Bot 在里面装包、跑命令、读写文件，和真机一个用法。</p>
+      <ul class="tech-list">
+        <li><strong>Kotlin + Jetpack Compose</strong><br><span>原生开发，界面全应用采用液态玻璃——你现在看到的这块面板，就是网站的复刻。</span></li>
+        <li><strong>PRoot · Ubuntu 24.04</strong><br><span>每个 Bot 独立沙箱，互不串门，重置即重生。</span></li>
+        <li><strong>仅 ARM64</strong><br><span>针对现代安卓手机原生构建。</span></li>
+      </ul>
+      <p>试试左边那条 <code>rm -rf ~</code>——BotHive 的命令批准卡会先拦下来问你。这一拦，就是它和「放养型 AI」的区别。</p>
+    </div>
+  </section>
+
+  <!-- ============ 5. 下载 ============ -->
+  <section class="download wrap" id="download">
+    <h2 class="io">现在就能装</h2>
+    <div class="download-card lg io" data-lg data-lg-hover>
+      <p class="dl-meta">最新版本 <strong>v0.5.8</strong> · APK 直装 · Android 8.0+ · ARM64</p>
+      <a class="btn btn-primary" href="https://github.com/cxc1344/BotHive/releases">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m6 11 6 6 6-6"/></svg>
+        下载 APK
+      </a>
+      <p class="dl-meta">开源免费，源码与历史版本都在 GitHub releases。</p>
+    </div>
+  </section>
+
+  <!-- ============ 6. 页脚 ============ -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-name io">橙C诚</div>
+      <div class="foot-links io">
+        <a href="https://github.com/cxc1344/BotHive">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5A11.5 11.5 0 0 0 .5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.55v-2.1c-3.2.7-3.87-1.36-3.87-1.36-.52-1.32-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.75 2.69 1.25 3.34.95.1-.74.4-1.25.73-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.8 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.24 2.76.12 3.05.74.81 1.18 1.83 1.18 3.09 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .3.2.66.8.55A11.5 11.5 0 0 0 23.5 12 11.5 11.5 0 0 0 12 .5Z"/></svg>
+          cxc1344
+        </a>
+        <a href="https://github.com/cxc1344/BotHive/releases">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s-7-4.35-9.33-8.11C.9 9.9 2.42 6 6 6c2.06 0 3.35 1.15 4 2.27h4c.65-1.12 1.94-2.27 4-2.27 3.58 0 5.1 3.9 3.33 6.89C19 16.65 12 21 12 21Z"/></svg>
+          抖音 · 橙C诚
+        </a>
+      </div>
+      <p class="foot-note">BotHive 开源免费 · 液态玻璃界面 · 网站与图标均为本地资源，零外部请求</p>
+    </div>
+  </footer>
+
+</main>
+
+<script src="assets/liquid-glass.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

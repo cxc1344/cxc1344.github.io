@@ -1,0 +1,119 @@
+/* liquid-glass.css — 真液态玻璃材质层
+ * 按 skills/liquid-glass.md 配方实现：
+ *   1) SDF 位移折射 + RGB 色散（运行时 JS 生成位移贴图 + SVG filter，见 liquid-glass.js）
+ *   2) frosted 降级层（backdrop blur + 半透明白）——Firefox / 无 JS 时的兜底，绝不删除
+ *   3) 实时高光：sheen(::after, screen 混合) 与 rim(::before, conic 渐变, mask 到边环)
+ *      都由 :root 上的 --lg-tx/--lg-ty/--lg-bx/--lg-ang/--lg-flash 驱动
+ *
+ * 用法：
+ *   <div class="lg lg-card">…</div>   —— .lg 即被 liquid-glass.js 增强
+ *   胶囊用 .lg-capsule（border-radius: 999px）
+ */
+
+/* ---- CSS 变量（main.css 可覆盖） ------------------------------- */
+:root {
+  /* 高光位置（main.js 或本文件的指针跟踪写入；这里是无 JS 时的安全默认） */
+  --lg-tx: 30%;          /* sheen 中心 x */
+  --lg-ty: 20%;          /* sheen 中心 y */
+  --lg-bx: 70%;          /* rim 亮弧基准 x */
+  --lg-ang: 128deg;      /* rim conic 旋转角 */
+  --lg-flash: 0;         /* 0~1，瞬时闪光（蜂鸣/通知应答） */
+  --lg-filter: blur(10px);  /* 无贴图时 = 纯 frosted；贴图就绪后 JS 换成 SVG filter */
+  --lg-rim: 2px;            /* rim 环粗细 */
+  --lg-sheen: 0.16;         /* sheen 强度基准 */
+}
+
+/* ---- 材质主体 --------------------------------------------------- */
+.lg {
+  position: relative;
+  isolation: isolate;
+  /* frosted 降级层：永远在场。Chromium/Safari 上 JS 会把 backdrop-filter
+     换成 SVG filter（折射），blur 退为 filter 内的一部分 */
+  -webkit-backdrop-filter: var(--lg-filter);
+  backdrop-filter: var(--lg-filter);
+  background:
+    linear-gradient(
+      hsl(0 0% 100% / 0.055),
+      hsl(0 0% 100% / 0.02) 42%,
+      hsl(0 0% 100% / 0.045)
+    );
+  box-shadow:
+    inset 0 1px 0 hsl(0 0% 100% / 0.14),   /* 上缘收光 */
+    inset 0 -1px 0 hsl(0 0% 0% / 0.22),    /* 下缘沉光 */
+    0 10px 30px hsl(40 30% 2% / 0.35);     /* 玻璃确实浮着，允许这一个影子 */
+}
+
+/* 胶囊形状（按钮/dock 类元素） */
+.lg-capsule { border-radius: 999px; }
+
+/* ---- rim 环（::before，conic 渐变，mask 到边环） ------------------ */
+.lg::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: var(--lg-rim);
+  /* 亮弧绕 --lg-bx 旋转：指针在右，亮弧在右 */
+  background: conic-gradient(
+    from var(--lg-ang),
+    hsl(45 90% 62% / 0.0) 0deg,
+    hsl(45 95% 70% / calc(0.55 + 0.35 * var(--lg-flash))) calc(var(--lg-ax, 0.5) * 1deg),
+    hsl(46 100% 78% / calc(0.30 + 0.45 * var(--lg-flash))) 38deg,
+    hsl(190 70% 80% / calc(0.22 + 0.35 * var(--lg-flash))) 62deg,
+    hsl(0 0% 100% / 0.05) 110deg,
+    hsl(0 0% 100% / 0.02) 250deg,
+    hsl(45 90% 62% / 0.0) 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - var(--lg-rim)), #000 calc(100% - var(--lg-rim) + 0.5px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - var(--lg-rim)), #000 calc(100% - var(--lg-rim) + 0.5px));
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ---- sheen 高光（::after，screen 混合，跟指针） -------------------- */
+.lg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background:
+    radial-gradient(
+      130% 90% at var(--lg-tx) var(--lg-ty),
+      hsl(48 100% 80% / calc(var(--lg-sheen) * (0.6 + 0.8 * var(--lg-flash)))),
+      hsl(48 100% 80% / calc(var(--lg-sheen) * 0.25)) 30%,
+      transparent 62%
+    );
+  mix-blend-mode: screen;
+  pointer-events: none;
+  z-index: 1;
+  /* 贴图没就绪（无 JS/Firefox）时 sheen 收进静态角光，避免降级层上乱闪 */
+  opacity: var(--lg-sheen-on, 1);
+}
+
+/* 折射就绪门控：贴图生成后 JS 加 .lg-on，filter 切到 SVG 折射。
+   没加之前永远是干净的 frosted，用户不会看到半成品 filter。 */
+.lg.lg-on {
+  --lg-filter: url(#lg-refract) blur(3px);
+  --lg-sheen-on: 1;
+}
+
+/* ---- 内容排布：内容永远在材质之上 -------------------------------- */
+.lg > * { position: relative; z-index: 2; }
+
+/* ---- 指针悬停/按下的材质反馈（main.js 亦可复用） ------------------ */
+@media (hover: hover) {
+  .lg[data-lg-hover] { transition: box-shadow 0.25s ease; }
+  .lg[data-lg-hover]:hover {
+    --lg-sheen: 0.24;
+    box-shadow:
+      inset 0 1px 0 hsl(0 0% 100% / 0.2),
+      inset 0 -1px 0 hsl(0 0% 0% / 0.22),
+      0 14px 38px hsl(40 30% 2% / 0.42);
+  }
+}
+
+/* ---- 动效降级 ----------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  /* sheen 不再跟指针动画（JS 侧也会停掉跟踪循环），材质本身保留 */
+  .lg::before, .lg::after { transition: none; }
+}
