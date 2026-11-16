@@ -62,7 +62,7 @@
         // 背景 ±6px 顺指针，玻璃面板 ±10px 逆指针 → 玻璃「浮」在背景之上
         bee.style.translate = (-50 + dx * 6) + "px " + (dy * 6) + "px";
         panel.style.translate = (-dx * 10) + "px " + (-dy * 8) + "px";
-      }, { passive: true } ? undefined : undefined);
+      });
     }, { passive: true });
   }
 
@@ -269,8 +269,358 @@
     }
   }
 
+  /* ============ 0.6.0 主题色系统 ==================================== */
+  var THEME_PRESETS = [
+    { name: "蜂蜜黄", h: 45, s: 76, v: 100 },
+    { name: "Claude 橙", h: 18, s: 65, v: 83 },
+    { name: "天空蓝", h: 210, s: 55, v: 90 },
+    { name: "抹茶绿", h: 145, s: 50, v: 85 },
+    { name: "葡萄紫", h: 275, s: 50, v: 80 },
+    { name: "樱花粉", h: 340, s: 55, v: 90 },
+    { name: "薄荷青", h: 170, s: 50, v: 88 },
+    { name: "珍珠白", h: 60, s: 10, v: 95 }
+  ];
+
+  var themeState = { h: 45, s: 76, v: 100, custom: false, name: "蜂蜜黄" };
+
+  function hsvToRgb(h, s, v) {
+    h = ((Number(h) % 360) + 360) % 360;
+    s = Math.max(0, Math.min(100, Number(s))) / 100;
+    v = Math.max(0, Math.min(100, Number(v))) / 100;
+    var c = v * s;
+    var x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    var m = v - c;
+    var rgb;
+    if (h < 60) rgb = [c, x, 0];
+    else if (h < 120) rgb = [x, c, 0];
+    else if (h < 180) rgb = [0, c, x];
+    else if (h < 240) rgb = [0, x, c];
+    else if (h < 300) rgb = [x, 0, c];
+    else rgb = [c, 0, x];
+    return rgb.map(function (n) { return Math.round((n + m) * 255); });
+  }
+
+  function rgbHex(rgb) {
+    return "#" + rgb.map(function (n) {
+      return Math.max(0, Math.min(255, n)).toString(16).padStart(2, "0");
+    }).join("").toUpperCase();
+  }
+
+  function applyTheme(save) {
+    var root = document.documentElement;
+    var rgb = hsvToRgb(themeState.h, themeState.s, themeState.v);
+    var deep = hsvToRgb(themeState.h, themeState.s, themeState.v * 0.85);
+    var pale = hsvToRgb(themeState.h, themeState.s * 0.45, Math.min(100, themeState.v * 1.04));
+    var accent = rgbHex(rgb);
+    root.style.setProperty("--accent", accent);
+    root.style.setProperty("--accent-deep", rgbHex(deep));
+    root.style.setProperty("--accent-pale", rgbHex(pale));
+    root.style.setProperty("--accent-rgb", rgb.join(", "));
+
+    var preview = document.getElementById("theme-preview-swatch");
+    var previewName = document.getElementById("theme-preview-name");
+    var previewHex = document.getElementById("theme-preview-hex");
+    if (preview) preview.style.backgroundColor = accent;
+    if (previewName) previewName.textContent = themeState.custom ? "自定义颜色" : themeState.name;
+    if (previewHex) previewHex.textContent = accent;
+
+    var ranges = [
+      ["hue-range", "hue-value", themeState.h, "°"],
+      ["sat-range", "sat-value", themeState.s, "%"],
+      ["val-range", "val-value", themeState.v, "%"]
+    ];
+    ranges.forEach(function (item) {
+      var input = document.getElementById(item[0]);
+      var output = document.getElementById(item[1]);
+      if (input) input.value = String(item[2]);
+      if (output) output.textContent = String(item[2]) + item[3];
+    });
+
+    var presetButtons = document.querySelectorAll(".theme-preset");
+    presetButtons.forEach(function (button) {
+      var match = !themeState.custom && Number(button.dataset.h) === themeState.h &&
+        Number(button.dataset.s) === themeState.s && Number(button.dataset.v) === themeState.v;
+      button.classList.toggle("is-active", match);
+      button.setAttribute("aria-pressed", match ? "true" : "false");
+      var swatch = button.querySelector("i");
+      if (swatch) swatch.style.setProperty("--swatch", rgbHex(hsvToRgb(button.dataset.h, button.dataset.s, button.dataset.v)));
+    });
+
+    if (save) {
+      try {
+        window.localStorage.setItem("bothive-theme", JSON.stringify({
+          h: themeState.h, s: themeState.s, v: themeState.v, custom: themeState.custom
+        }));
+      } catch (e) { /* 隐私模式或禁用存储时仍可正常使用 */ }
+    }
+  }
+
+  function initTheme() {
+    var card = document.getElementById("theme-card");
+    if (!card) return;
+    try {
+      var stored = window.localStorage.getItem("bothive-theme");
+      if (stored) {
+        var saved = JSON.parse(stored);
+        if (saved && Number.isFinite(Number(saved.h)) && Number.isFinite(Number(saved.s)) && Number.isFinite(Number(saved.v))) {
+          themeState.h = Math.max(0, Math.min(360, Math.round(Number(saved.h))));
+          themeState.s = Math.max(0, Math.min(100, Math.round(Number(saved.s))));
+          themeState.v = Math.max(0, Math.min(100, Math.round(Number(saved.v))));
+          themeState.custom = Boolean(saved.custom);
+          var matched = THEME_PRESETS.find(function (preset) {
+            return preset.h === themeState.h && preset.s === themeState.s && preset.v === themeState.v;
+          });
+          themeState.name = matched ? matched.name : "自定义颜色";
+        }
+      }
+    } catch (e) { /* 坏数据按默认蜂蜜黄启动 */ }
+
+    card.querySelectorAll(".theme-preset").forEach(function (button) {
+      button.addEventListener("click", function () {
+        themeState.h = Number(button.dataset.h);
+        themeState.s = Number(button.dataset.s);
+        themeState.v = Number(button.dataset.v);
+        themeState.custom = false;
+        themeState.name = button.dataset.name || "预设颜色";
+        applyTheme(true);
+      });
+    });
+
+    [
+      ["hue-range", "h"],
+      ["sat-range", "s"],
+      ["val-range", "v"]
+    ].forEach(function (pair) {
+      var input = document.getElementById(pair[0]);
+      if (!input) return;
+      input.addEventListener("input", function () {
+        themeState[pair[1]] = Number(input.value);
+        themeState.custom = true;
+        themeState.name = "自定义颜色";
+        applyTheme(true);
+      });
+    });
+
+    applyTheme(false);
+  }
+
+  /* ============ 0.6.0 液态胶囊：双边缘弹簧 ========================== */
+  function initLiquidGroup(track, onSelect) {
+    var buttons = Array.prototype.slice.call(track.querySelectorAll(".seg-item"));
+    var drop = track.querySelector(".seg-drop");
+    if (!buttons.length || !drop) return;
+
+    var activeIndex = Math.max(0, Math.min(buttons.length - 1, Number(track.dataset.activeIndex) || 0));
+    var current = { left: 0, right: 0, vLeft: 0, vRight: 0 };
+    var target = { left: 0, right: 0 };
+    var frame = 0;
+    var lastTime = 0;
+    var direction = 0;
+    var dragged = false;
+    var suppressClick = false;
+    var pointerStartX = 0;
+    var pointerId = null;
+
+    function measure(index) {
+      var trackRect = track.getBoundingClientRect();
+      var rect = buttons[index].getBoundingClientRect();
+      return { left: rect.left - trackRect.left, right: rect.right - trackRect.left };
+    }
+
+    function setActive(index) {
+      activeIndex = Math.max(0, Math.min(buttons.length - 1, index));
+      track.dataset.activeIndex = String(activeIndex);
+      buttons.forEach(function (button, i) {
+        var selected = i === activeIndex;
+        button.classList.toggle("is-active", selected);
+        button.setAttribute("aria-pressed", selected ? "true" : "false");
+      });
+      if (typeof onSelect === "function") onSelect(activeIndex);
+    }
+
+    function draw() {
+      var left = Math.max(0, current.left);
+      var width = Math.max(8, current.right - current.left);
+      drop.style.width = width + "px";
+      drop.style.setProperty("--drop-x", left + "px");
+    }
+
+    function settlePulse() {
+      drop.classList.remove("is-settling");
+      // 触发一次样式计算，确保连续快速点击时也能重新播放回弹
+      void drop.offsetWidth;
+      drop.classList.add("is-settling");
+      window.setTimeout(function () { drop.classList.remove("is-settling"); }, 380);
+    }
+
+    function stopFrame() {
+      if (frame) window.cancelAnimationFrame(frame);
+      frame = 0;
+      lastTime = 0;
+    }
+
+    function setPosition(index, animate, pulse) {
+      var next = measure(index);
+      var nextDirection = next.left > current.left + 0.5 ? 1 : next.left < current.left - 0.5 ? -1 : 0;
+      target.left = next.left;
+      target.right = next.right;
+      direction = nextDirection;
+      if (!animate || reduced) {
+        stopFrame();
+        current.left = target.left;
+        current.right = target.right;
+        current.vLeft = current.vRight = 0;
+        draw();
+        if (pulse && !reduced) settlePulse();
+        return;
+      }
+      if (frame) return;
+
+      function tick(time) {
+        if (!lastTime) lastTime = time;
+        var dt = Math.min(0.032, Math.max(0.001, (time - lastTime) / 1000));
+        lastTime = time;
+        // 向右时左边缘是前缘，向左时右边缘是前缘；前缘更快，后缘稍慢
+        var leftK = direction >= 0 ? 700 : 230;
+        var rightK = direction < 0 ? 700 : 230;
+        var leftD = 2 * Math.sqrt(leftK) * 0.58;
+        var rightD = 2 * Math.sqrt(rightK) * 0.74;
+        var aLeft = -leftK * (current.left - target.left) - leftD * current.vLeft;
+        var aRight = -rightK * (current.right - target.right) - rightD * current.vRight;
+        current.vLeft += aLeft * dt;
+        current.vRight += aRight * dt;
+        current.left += current.vLeft * dt;
+        current.right += current.vRight * dt;
+        draw();
+
+        var settled = Math.abs(current.left - target.left) < 0.12 &&
+          Math.abs(current.right - target.right) < 0.12 &&
+          Math.abs(current.vLeft) < 0.65 && Math.abs(current.vRight) < 0.65;
+        if (settled) {
+          current.left = target.left;
+          current.right = target.right;
+          current.vLeft = current.vRight = 0;
+          draw();
+          frame = 0;
+          lastTime = 0;
+          if (pulse) settlePulse();
+          return;
+        }
+        frame = window.requestAnimationFrame(tick);
+      }
+      frame = window.requestAnimationFrame(tick);
+    }
+
+    function choose(index, animate) {
+      if (index < 0 || index >= buttons.length) return;
+      var changed = index !== activeIndex;
+      setActive(index);
+      setPosition(index, animate !== false, changed && animate !== false);
+    }
+
+    function nearestIndex(clientX) {
+      var closest = 0;
+      var distance = Infinity;
+      buttons.forEach(function (button, index) {
+        var rect = button.getBoundingClientRect();
+        var d = Math.abs(clientX - (rect.left + rect.width / 2));
+        if (d < distance) { distance = d; closest = index; }
+      });
+      return closest;
+    }
+
+    // 首帧按当前选中项对齐；ResizeObserver 处理横竖屏与容器宽度变化
+    setActive(activeIndex);
+    var initial = measure(activeIndex);
+    current.left = target.left = initial.left;
+    current.right = target.right = initial.right;
+    draw();
+
+    track.addEventListener("click", function (event) {
+      var button = event.target.closest(".seg-item");
+      if (!button) return;
+      if (suppressClick) { event.preventDefault(); suppressClick = false; return; }
+      choose(buttons.indexOf(button), true);
+    });
+
+    track.addEventListener("pointerdown", function (event) {
+      if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
+      var button = event.target.closest(".seg-item");
+      if (!button) return;
+      pointerId = event.pointerId;
+      pointerStartX = event.clientX;
+      dragged = false;
+      track.classList.add("is-pressed");
+      try { track.setPointerCapture(pointerId); } catch (e) {}
+    });
+
+    track.addEventListener("pointermove", function (event) {
+      if (pointerId === null || event.pointerId !== pointerId) return;
+      if (Math.abs(event.clientX - pointerStartX) > 4) dragged = true;
+      if (dragged) choose(nearestIndex(event.clientX), true);
+    });
+
+    function finishPointer(event) {
+      if (pointerId === null || (event && event.pointerId !== pointerId)) return;
+      if (dragged && event && Number.isFinite(event.clientX)) choose(nearestIndex(event.clientX), true);
+      track.classList.remove("is-pressed");
+      if (dragged) {
+        suppressClick = true;
+        window.setTimeout(function () { suppressClick = false; }, 0);
+      }
+      var oldId = pointerId;
+      pointerId = null;
+      dragged = false;
+      try { if (track.hasPointerCapture(oldId)) track.releasePointerCapture(oldId); } catch (e) {}
+    }
+    track.addEventListener("pointerup", finishPointer);
+    track.addEventListener("pointercancel", finishPointer);
+    track.addEventListener("lostpointercapture", function () {
+      if (pointerId !== null) finishPointer({ pointerId: pointerId });
+    });
+
+    if ("ResizeObserver" in window) {
+      var resizeObserver = new ResizeObserver(function () {
+        var next = measure(activeIndex);
+        stopFrame();
+        current.left = target.left = next.left;
+        current.right = target.right = next.right;
+        current.vLeft = current.vRight = 0;
+        draw();
+      });
+      resizeObserver.observe(track);
+    } else {
+      window.addEventListener("resize", function () {
+        var next = measure(activeIndex);
+        current.left = target.left = next.left;
+        current.right = target.right = next.right;
+        draw();
+      });
+    }
+
+    return { getActiveIndex: function () { return activeIndex; } };
+  }
+
+  function initLiquidSegments() {
+    var stateText = document.getElementById("capsule-state-text");
+    var modeNames = ["Bot 模式", "Agent 模式"];
+    var roleNames = ["管家", "程序员", "画师", "管账的"];
+    var selectedMode = 0;
+    var selectedRole = 0;
+    function updateText() {
+      if (stateText) stateText.innerHTML = "当前选择 <strong>" + modeNames[selectedMode] + " · " + roleNames[selectedRole] + "</strong>";
+    }
+    var modeTrack = document.querySelector(".liquid-seg");
+    var roleTrack = document.querySelector(".liquid-choice");
+    if (modeTrack) initLiquidGroup(modeTrack, function (index) { selectedMode = index; updateText(); });
+    if (roleTrack) initLiquidGroup(roleTrack, function (index) { selectedRole = index; updateText(); });
+    updateText();
+  }
+
   /* ============ 启动 ================================================== */
   function start() {
+    initTheme();
+    initLiquidSegments();
     initReveal();
     initParallax();
     initFlash();
