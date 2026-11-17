@@ -167,7 +167,16 @@
       if (card) { card.classList.add("show"); if (window.LiquidGlass) LiquidGlass.register(card); }
       return;
     }
-    var lines = TERM[cmd] || [];
+    var termKey = cmd === "whoami" ? "whoami"
+      : (cmd === "ls" || cmd === "ls ~" || cmd === "ls ~/") ? "ls"
+      : cmd.indexOf("apt") === 0 ? "apt" : null;
+    if (!termKey) {
+      termLine([{ t: "bash: " + cmd + "：未找到命令", c: "warn" }]);
+      termLine([{ t: "试试 whoami、ls ~/、apt install python3，或者点下面的按钮。" }]);
+      prompt();
+      return;
+    }
+    var lines = TERM[termKey] || [];
     if (reduced) {
       lines.forEach(function (l) { termLine(l); });
       prompt();
@@ -246,6 +255,19 @@
         prompt();
       }, reduced ? 0 : 700);
     });
+    var form = document.getElementById("term-form");
+    var input = document.getElementById("term-input");
+    if (form && input) {
+      form.addEventListener("submit", function (e) {
+        e.preventDefault();
+        var raw = input.value.trim().replace(/\s+/g, " ");
+        if (!raw) return;
+        input.value = "";
+        var c = document.getElementById("approve-card");
+        if (c) c.classList.remove("show");
+        runCommand(raw);
+      });
+    }
     if (window.LiquidGlass) {
       var card = document.getElementById("approve-card");
       if (card) LiquidGlass.register(card);
@@ -401,6 +423,39 @@
       });
     });
 
+    var copyBtn = document.getElementById("theme-copy");
+    if (copyBtn) {
+      var copyTimer = 0;
+      var fallbackCopy = function (text) {
+        var ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try { document.execCommand("copy"); } catch (e) {}
+        document.body.removeChild(ta);
+      };
+      copyBtn.addEventListener("click", function () {
+        var hex = rgbHex(hsvToRgb(themeState.h, themeState.s, themeState.v));
+        var done = function () {
+          copyBtn.textContent = "已复制";
+          copyBtn.classList.add("is-copied");
+          window.clearTimeout(copyTimer);
+          copyTimer = window.setTimeout(function () {
+            copyBtn.textContent = "复制";
+            copyBtn.classList.remove("is-copied");
+          }, 1600);
+        };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(hex).then(done, function () { fallbackCopy(hex); done(); });
+        } else {
+          fallbackCopy(hex);
+          done();
+        }
+      });
+    }
+
     applyTheme(false);
   }
 
@@ -543,6 +598,21 @@
       choose(buttons.indexOf(button), true);
     });
 
+    track.addEventListener("keydown", function (event) {
+      var button = event.target.closest(".seg-item");
+      if (!button) return;
+      var idx = buttons.indexOf(button);
+      var next = null;
+      if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (idx + 1) % buttons.length;
+      else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (idx - 1 + buttons.length) % buttons.length;
+      else if (event.key === "Home") next = 0;
+      else if (event.key === "End") next = buttons.length - 1;
+      if (next === null) return;
+      event.preventDefault();
+      choose(next, true);
+      buttons[next].focus();
+    });
+
     track.addEventListener("pointerdown", function (event) {
       if (!event.isPrimary || (event.pointerType === "mouse" && event.button !== 0)) return;
       var button = event.target.closest(".seg-item");
@@ -617,6 +687,83 @@
     updateText();
   }
 
+  /* ============ 7. 滚动进度 + 章节高亮 + 卡片聚光 ==================== */
+  function initScrollUI() {
+    var bar = document.querySelector(".scroll-progress");
+    var spyLinks = document.querySelectorAll('.nav-links a[href^="#"]');
+    var ticking = false;
+    function update() {
+      ticking = false;
+      if (bar) {
+        var max = document.documentElement.scrollHeight - window.innerHeight;
+        var p = max > 0 ? Math.min(1, window.scrollY / max) : 0;
+        bar.style.transform = "scaleX(" + p + ")";
+      }
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+
+    if ("IntersectionObserver" in window && spyLinks.length) {
+      var byId = {};
+      spyLinks.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+      var spy = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          if (!entry.isIntersecting) return;
+          spyLinks.forEach(function (a) { a.classList.remove("is-current"); });
+          var link = byId[entry.target.id];
+          if (link) link.classList.add("is-current");
+        });
+      }, { rootMargin: "-38% 0px -55% 0px" });
+      Object.keys(byId).forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) spy.observe(el);
+      });
+    }
+
+    // 特性卡聚光：只在可悬停设备上跟踪指针
+    if (window.matchMedia("(hover: hover)").matches && !reduced) {
+      document.querySelectorAll(".feature-card").forEach(function (card) {
+        var raf = null;
+        card.addEventListener("pointermove", function (e) {
+          if (raf) return;
+          raf = window.requestAnimationFrame(function () {
+            raf = null;
+            var r = card.getBoundingClientRect();
+            card.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+            card.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+          });
+        }, { passive: true });
+      });
+    }
+
+    var year = document.getElementById("foot-year");
+    if (year) year.textContent = String(new Date().getFullYear());
+  }
+
+  /* ============ 8. 回到顶部 ========================================= */
+  function initToTop() {
+    var btn = document.getElementById("to-top");
+    if (!btn) return;
+    var ticking = false;
+    function update() {
+      ticking = false;
+      btn.classList.toggle("is-show", window.scrollY > 600);
+    }
+    window.addEventListener("scroll", function () {
+      if (!ticking) { ticking = true; window.requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+    btn.addEventListener("click", function () {
+      try {
+        window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
+      } catch (e) {
+        window.scrollTo(0, 0);
+      }
+    });
+  }
+
   /* ============ 启动 ================================================== */
   function start() {
     initTheme();
@@ -627,6 +774,8 @@
     initNav();
     initTerm();
     initGlass();
+    initScrollUI();
+    initToTop();
   }
 
   if (document.readyState === "loading") {
